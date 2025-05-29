@@ -1,4 +1,6 @@
 
+import { ArbitrageOpportunity, AdminSettings } from '../types/arbitrage';
+
 const API_BASE_URL = 'http://localhost:3001';
 
 export const api = {
