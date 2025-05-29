@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,27 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// Custom colors for arbitrage theme
+				royal: {
+					50: '#eff6ff',
+					100: '#dbeafe',
+					500: '#3b82f6',
+					600: '#2563eb',
+					700: '#1d4ed8',
+					800: '#1e40af',
+					900: '#1e3a8a'
+				},
+				lime: {
+					50: '#f7fee7',
+					100: '#ecfccb',
+					400: '#a3e635',
+					500: '#84cc16',
+					600: '#65a30d'
+				},
+				purple: {
+					800: '#6b21a8',
+					900: '#581c87'
 				}
 			},
 			borderRadius: {
@@ -84,11 +106,24 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'pulse-glow': {
+					'0%, 100%': {
+						boxShadow: '0 0 20px rgba(132, 204, 22, 0.4)'
+					},
+					'50%': {
+						boxShadow: '0 0 30px rgba(132, 204, 22, 0.8)'
+					}
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'pulse-glow': 'pulse-glow 2s ease-in-out infinite'
+			},
+			backgroundImage: {
+				'gradient-royal-lime': 'linear-gradient(135deg, #1e40af 0%, #84cc16 100%)',
+				'gradient-purple-royal': 'linear-gradient(135deg, #581c87 0%, #1e40af 100%)'
 			}
 		}
 	},
