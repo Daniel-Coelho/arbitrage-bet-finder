@@ -7,31 +7,23 @@ const { mapApiDataToFrontend } = require('../utils/dataMapper');
 const API_BASE_URL = 'https://api.the-odds-api.com/v4';
 const API_KEY = process.env.ODDS_API_KEY;
 
-// Esportes para monitorar: Futebol, Basquete e E-sports
+// Esportes para monitorar: Futebol e Basquete (chaves corrigidas conforme API oficial)
 const MONITORED_SPORTS = [
-  // Futebol
+  // Futebol - usando chaves corretas da API
   'soccer_brazil_campeonato',
   'soccer_epl',
   'soccer_spain_la_liga',
-  'soccer_uefa_european_championship',
+  'soccer_uefa_champs_league',
   'soccer_germany_bundesliga',
   'soccer_italy_serie_a',
   'soccer_france_ligue_one',
+  'soccer_uefa_europa_league',
   
-  // Basquete Americano
+  // Basquete - usando chaves corretas da API
   'basketball_nba',
   'basketball_ncaab',
   'basketball_wnba',
-  
-  // Basquete Europeu
-  'basketball_euroleague',
-  'basketball_nbl',
-  
-  // E-sports
-  'csgo_pinnacle',
-  'dota2_pinnacle',
-  'lol_pinnacle',
-  'valorant_pinnacle'
+  'basketball_euroleague'
 ];
 
 let cronJob = null;
@@ -47,7 +39,7 @@ async function fetchOddsFromAPI() {
     const response = await axios.get(`${API_BASE_URL}/sports/${sport}/odds`, {
       params: {
         apiKey: API_KEY,
-        regions: 'us,uk,eu,au,br', // Adicionado 'au' e 'br' para cobrir mais casas
+        regions: 'us,uk,eu,au,br', // Incluindo regiões para Betano, VBet, etc
         markets: 'h2h',
         oddsFormat: 'decimal'
       },
@@ -76,9 +68,11 @@ async function fetchOddsFromAPI() {
     }
 
   } catch (error) {
-    console.error('❌ Error fetching odds:', error.message);
+    console.error(`❌ Error fetching odds for ${sport}:`, error.message);
     
-    if (error.response?.status === 429) {
+    if (error.response?.status === 422) {
+      console.log(`⚠️ Sport ${sport} may not be available or parameters are invalid`);
+    } else if (error.response?.status === 429) {
       console.log('⏳ Rate limited, waiting before next request...');
     }
     

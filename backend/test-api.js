@@ -16,27 +16,22 @@ async function testOddsAPI() {
       params: { apiKey: API_KEY }
     });
     
+    // Filtrar esportes usando chaves corretas
     const targetSports = sportsResponse.data.filter(sport => 
-      (sport.key.includes('soccer') || 
-       sport.key.includes('basketball') || 
-       sport.key.includes('csgo') ||
-       sport.key.includes('dota2') ||
-       sport.key.includes('lol') ||
-       sport.key.includes('valorant')) && 
+      (sport.key.includes('soccer_') || 
+       sport.key.includes('basketball_')) && 
       sport.active
     );
     
     console.log(`✅ Found ${targetSports.length} active target sports:`);
     
     const categories = {
-      soccer: targetSports.filter(s => s.key.includes('soccer')),
-      basketball: targetSports.filter(s => s.key.includes('basketball')),
-      esports: targetSports.filter(s => s.key.includes('csgo') || s.key.includes('dota2') || s.key.includes('lol') || s.key.includes('valorant'))
+      soccer: targetSports.filter(s => s.key.includes('soccer_')),
+      basketball: targetSports.filter(s => s.key.includes('basketball_'))
     };
     
-    console.log(`   🥅 Soccer: ${categories.soccer.length} leagues`);
+    console.log(`   ⚽ Soccer: ${categories.soccer.length} leagues`);
     console.log(`   🏀 Basketball: ${categories.basketball.length} leagues`);
-    console.log(`   🎮 E-sports: ${categories.esports.length} games`);
     
     // Test 2: Get odds for different sport types
     for (const [category, sports] of Object.entries(categories)) {
@@ -68,12 +63,16 @@ async function testOddsAPI() {
             console.log(`   - Available bookmakers: ${bookmakers}`);
           }
         } catch (error) {
-          console.log(`⚠️ No data available for ${sport.title}`);
+          if (error.response?.status === 422) {
+            console.log(`⚠️ Sport ${sport.key} parameters invalid or not available`);
+          } else {
+            console.log(`⚠️ No data available for ${sport.title}: ${error.message}`);
+          }
         }
       }
     }
     
-    console.log('\n🎉 API test completed successfully!');
+    console.log('\n🎉 API test completed!');
     
   } catch (error) {
     console.error('\n❌ API test failed:');
