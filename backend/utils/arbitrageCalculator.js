@@ -1,10 +1,16 @@
 
 function calculateArbitrage(homeOdd, drawOdd, awayOdd) {
   const homeImplied = 1 / homeOdd;
-  const drawImplied = 1 / drawOdd;
   const awayImplied = 1 / awayOdd;
   
-  const totalImplied = homeImplied + drawImplied + awayImplied;
+  // Para esportes sem empate (drawOdd = 999), ignorar o empate
+  let drawImplied = 0;
+  let totalImplied = homeImplied + awayImplied;
+  
+  if (drawOdd && drawOdd < 999) {
+    drawImplied = 1 / drawOdd;
+    totalImplied = homeImplied + drawImplied + awayImplied;
+  }
   
   const hasArbitrage = totalImplied < 1;
   const margin = (1 - totalImplied) * 100;
@@ -19,9 +25,20 @@ function calculateArbitrage(homeOdd, drawOdd, awayOdd) {
   
   // Calculate optimal stakes for R$ 100 total investment
   const totalStake = 100;
-  const homeStake = (homeImplied / totalImplied) * totalStake;
-  const drawStake = (drawImplied / totalImplied) * totalStake;
-  const awayStake = (awayImplied / totalImplied) * totalStake;
+  
+  let homeStake, drawStake, awayStake;
+  
+  if (drawImplied === 0) {
+    // Esporte sem empate (basquete, e-sports)
+    homeStake = (homeImplied / totalImplied) * totalStake;
+    drawStake = 0;
+    awayStake = (awayImplied / totalImplied) * totalStake;
+  } else {
+    // Esporte com empate (futebol)
+    homeStake = (homeImplied / totalImplied) * totalStake;
+    drawStake = (drawImplied / totalImplied) * totalStake;
+    awayStake = (awayImplied / totalImplied) * totalStake;
+  }
   
   // Calculate guaranteed profit
   const profit = margin;

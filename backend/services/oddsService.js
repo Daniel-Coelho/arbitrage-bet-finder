@@ -1,4 +1,3 @@
-
 const axios = require('axios');
 const cron = require('node-cron');
 const { getCachedOpportunities, setCachedOpportunities, getUpdateInterval } = require('../cache/memoryCache');
@@ -8,23 +7,39 @@ const { mapApiDataToFrontend } = require('../utils/dataMapper');
 const API_BASE_URL = 'https://api.the-odds-api.com/v4';
 const API_KEY = process.env.ODDS_API_KEY;
 
-// Soccer sports to monitor
-const SOCCER_SPORTS = [
+// Esportes para monitorar: Futebol, Basquete e E-sports
+const MONITORED_SPORTS = [
+  // Futebol
   'soccer_brazil_campeonato',
   'soccer_epl',
   'soccer_spain_la_liga',
   'soccer_uefa_european_championship',
   'soccer_germany_bundesliga',
   'soccer_italy_serie_a',
-  'soccer_france_ligue_one'
+  'soccer_france_ligue_one',
+  
+  // Basquete Americano
+  'basketball_nba',
+  'basketball_ncaab',
+  'basketball_wnba',
+  
+  // Basquete Europeu
+  'basketball_euroleague',
+  'basketball_nbl',
+  
+  // E-sports
+  'csgo_pinnacle',
+  'dota2_pinnacle',
+  'lol_pinnacle',
+  'valorant_pinnacle'
 ];
 
 let cronJob = null;
 let currentSportIndex = 0;
 
 async function fetchOddsFromAPI() {
-  const sport = SOCCER_SPORTS[currentSportIndex];
-  currentSportIndex = (currentSportIndex + 1) % SOCCER_SPORTS.length;
+  const sport = MONITORED_SPORTS[currentSportIndex];
+  currentSportIndex = (currentSportIndex + 1) % MONITORED_SPORTS.length;
   
   try {
     console.log(`🔍 Fetching odds for ${sport}...`);
@@ -52,7 +67,7 @@ async function fetchOddsFromAPI() {
       const mappedData = arbitrageOpportunities.map(mapApiDataToFrontend);
       
       setCachedOpportunities(mappedData, quotaInfo);
-      console.log(`✅ Found ${mappedData.length} arbitrage opportunities`);
+      console.log(`✅ Found ${mappedData.length} arbitrage opportunities for ${sport}`);
       
       return mappedData;
     } else {
@@ -116,7 +131,12 @@ function findBestOdds(game) {
     });
   });
   
-  if (bestHome.odd > 0 && bestDraw.odd > 0 && bestAway.odd > 0) {
+  // Para esportes sem empate (basquete, e-sports), definir empate como 0
+  if (bestDraw.odd === 0) {
+    bestDraw = { odd: 999, bookmaker: 'N/A' }; // Odd muito alta para não afetar cálculo
+  }
+  
+  if (bestHome.odd > 0 && bestAway.odd > 0) {
     return { home: bestHome, draw: bestDraw, away: bestAway };
   }
   
@@ -138,6 +158,21 @@ function getMockData() {
         draw: "29.41",
         away: "38.46",
         lucro: "3.57"
+      }
+    },
+    {
+      time_home: "Lakers",
+      time_away: "Warriors",
+      odds: {
+        home: { odd: 2.1, casa: "DraftKings" },
+        draw: { odd: 999, casa: "N/A" },
+        away: { odd: 1.9, casa: "FanDuel" }
+      },
+      stakes: {
+        home: "47.62",
+        draw: "0.00",
+        away: "52.63",
+        lucro: "2.38"
       }
     }
   ];

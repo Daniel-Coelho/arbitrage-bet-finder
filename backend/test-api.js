@@ -16,38 +16,56 @@ async function testOddsAPI() {
       params: { apiKey: API_KEY }
     });
     
-    const soccerSports = sportsResponse.data.filter(sport => 
-      sport.key.includes('soccer') && sport.active
+    const targetSports = sportsResponse.data.filter(sport => 
+      (sport.key.includes('soccer') || 
+       sport.key.includes('basketball') || 
+       sport.key.includes('csgo') ||
+       sport.key.includes('dota2') ||
+       sport.key.includes('lol') ||
+       sport.key.includes('valorant')) && 
+      sport.active
     );
     
-    console.log(`✅ Found ${soccerSports.length} active soccer sports:`);
-    soccerSports.slice(0, 5).forEach(sport => {
-      console.log(`   - ${sport.key}: ${sport.title}`);
-    });
+    console.log(`✅ Found ${targetSports.length} active target sports:`);
     
-    // Test 2: Get odds for a soccer sport
-    if (soccerSports.length > 0) {
-      console.log('\n🎯 Test 2: Getting odds for soccer...');
-      const sport = soccerSports[0];
-      
-      const oddsResponse = await axios.get(`${API_BASE_URL}/sports/${sport.key}/odds`, {
-        params: {
-          apiKey: API_KEY,
-          regions: 'us,uk,eu',
-          markets: 'h2h',
-          oddsFormat: 'decimal'
+    const categories = {
+      soccer: targetSports.filter(s => s.key.includes('soccer')),
+      basketball: targetSports.filter(s => s.key.includes('basketball')),
+      esports: targetSports.filter(s => s.key.includes('csgo') || s.key.includes('dota2') || s.key.includes('lol') || s.key.includes('valorant'))
+    };
+    
+    console.log(`   🥅 Soccer: ${categories.soccer.length} leagues`);
+    console.log(`   🏀 Basketball: ${categories.basketball.length} leagues`);
+    console.log(`   🎮 E-sports: ${categories.esports.length} games`);
+    
+    // Test 2: Get odds for different sport types
+    for (const [category, sports] of Object.entries(categories)) {
+      if (sports.length > 0) {
+        console.log(`\n🎯 Test 2.${category}: Getting odds for ${category}...`);
+        const sport = sports[0];
+        
+        try {
+          const oddsResponse = await axios.get(`${API_BASE_URL}/sports/${sport.key}/odds`, {
+            params: {
+              apiKey: API_KEY,
+              regions: 'us,uk,eu',
+              markets: 'h2h',
+              oddsFormat: 'decimal'
+            }
+          });
+          
+          console.log(`✅ Odds fetched for ${sport.title}:`);
+          console.log(`   - Games found: ${oddsResponse.data.length}`);
+          console.log(`   - Quota remaining: ${oddsResponse.headers['x-requests-remaining']}`);
+          
+          if (oddsResponse.data.length > 0) {
+            const game = oddsResponse.data[0];
+            console.log(`   - Sample game: ${game.home_team} vs ${game.away_team}`);
+            console.log(`   - Bookmakers: ${game.bookmakers.length}`);
+          }
+        } catch (error) {
+          console.log(`⚠️ No data available for ${sport.title}`);
         }
-      });
-      
-      console.log(`✅ Odds fetched for ${sport.title}:`);
-      console.log(`   - Games found: ${oddsResponse.data.length}`);
-      console.log(`   - Quota remaining: ${oddsResponse.headers['x-requests-remaining']}`);
-      console.log(`   - Quota used: ${oddsResponse.headers['x-requests-used']}`);
-      
-      if (oddsResponse.data.length > 0) {
-        const game = oddsResponse.data[0];
-        console.log(`   - Sample game: ${game.home_team} vs ${game.away_team}`);
-        console.log(`   - Bookmakers: ${game.bookmakers.length}`);
       }
     }
     
