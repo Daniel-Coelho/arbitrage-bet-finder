@@ -11,63 +11,74 @@ async function testOddsAPI() {
   
   try {
     // Test 1: Get sports list
-    console.log('\n📋 Test 1: Getting sports list...');
+    console.log('\n📋 Test 1: Getting ALL available sports...');
     const sportsResponse = await axios.get(`${API_BASE_URL}/sports`, {
       params: { apiKey: API_KEY }
     });
     
-    // Filtrar esportes usando chaves exatas da lista oficial
-    const targetSports = sportsResponse.data.filter(sport => 
-      (sport.key.includes('soccer_') || 
-       sport.key.includes('basketball_')) && 
-      sport.active
+    console.log(`✅ Found ${sportsResponse.data.length} total sports`);
+    
+    // Mostrar TODOS os esportes disponíveis para debug
+    console.log('\n🔍 All available sports:');
+    sportsResponse.data.forEach(sport => {
+      if (sport.active) {
+        console.log(`   ✅ ${sport.key} - ${sport.title} - ${sport.group}`);
+      }
+    });
+    
+    // Filtrar esportes de futebol e basquete disponíveis
+    const footballSports = sportsResponse.data.filter(sport => 
+      (sport.group === 'Soccer' || sport.group === 'Football') && sport.active
     );
     
-    console.log(`✅ Found ${targetSports.length} active target sports:`);
+    const basketballSports = sportsResponse.data.filter(sport => 
+      sport.group === 'Basketball' && sport.active
+    );
     
-    const categories = {
-      soccer: targetSports.filter(s => s.key.includes('soccer_')),
-      basketball: targetSports.filter(s => s.key.includes('basketball_'))
-    };
+    console.log(`\n⚽ Available Soccer/Football leagues: ${footballSports.length}`);
+    footballSports.forEach(sport => {
+      console.log(`   - ${sport.key}: ${sport.title}`);
+    });
     
-    console.log(`   ⚽ Soccer: ${categories.soccer.length} leagues`);
-    console.log(`   🏀 Basketball: ${categories.basketball.length} leagues`);
+    console.log(`\n🏀 Available Basketball leagues: ${basketballSports.length}`);
+    basketballSports.forEach(sport => {
+      console.log(`   - ${sport.key}: ${sport.title}`);
+    });
     
-    // Test 2: Get odds for different sport types
-    for (const [category, sports] of Object.entries(categories)) {
-      if (sports.length > 0) {
-        console.log(`\n🎯 Test 2.${category}: Getting odds for ${category}...`);
-        const sport = sports[0];
+    // Test 2: Testar algumas ligas específicas
+    const testSports = [
+      ...footballSports.slice(0, 3), // Primeiras 3 ligas de futebol
+      ...basketballSports.slice(0, 2)  // Primeiras 2 ligas de basquete
+    ];
+    
+    console.log(`\n🎯 Testing odds for ${testSports.length} sports...`);
+    
+    for (const sport of testSports) {
+      try {
+        console.log(`\n🔍 Testing ${sport.key} (${sport.title})...`);
+        const oddsResponse = await axios.get(`${API_BASE_URL}/sports/${sport.key}/odds`, {
+          params: {
+            apiKey: API_KEY,
+            regions: 'us,uk,eu,au',
+            markets: 'h2h',
+            oddsFormat: 'decimal'
+          }
+        });
         
-        try {
-          const oddsResponse = await axios.get(`${API_BASE_URL}/sports/${sport.key}/odds`, {
-            params: {
-              apiKey: API_KEY,
-              regions: 'us,uk,eu,au,br', // Incluindo mais regiões para cobrir Betano, VBet, etc
-              markets: 'h2h',
-              oddsFormat: 'decimal'
-            }
-          });
-          
-          console.log(`✅ Odds fetched for ${sport.title}:`);
-          console.log(`   - Games found: ${oddsResponse.data.length}`);
-          console.log(`   - Quota remaining: ${oddsResponse.headers['x-requests-remaining']}`);
-          
-          if (oddsResponse.data.length > 0) {
-            const game = oddsResponse.data[0];
-            console.log(`   - Sample game: ${game.home_team} vs ${game.away_team}`);
-            console.log(`   - Bookmakers: ${game.bookmakers.length}`);
-            
-            // Mostrar casas de apostas encontradas para debug
-            const bookmakers = game.bookmakers.map(b => b.title).join(', ');
-            console.log(`   - Available bookmakers: ${bookmakers}`);
-          }
-        } catch (error) {
-          if (error.response?.status === 422) {
-            console.log(`⚠️ Sport ${sport.key} parameters invalid or not available`);
-          } else {
-            console.log(`⚠️ No data available for ${sport.title}: ${error.message}`);
-          }
+        console.log(`✅ ${sport.key}: ${oddsResponse.data.length} games found`);
+        console.log(`   Quota remaining: ${oddsResponse.headers['x-requests-remaining']}`);
+        
+        if (oddsResponse.data.length > 0) {
+          const game = oddsResponse.data[0];
+          console.log(`   Sample: ${game.home_team} vs ${game.away_team}`);
+          console.log(`   Bookmakers: ${game.bookmakers.length}`);
+        }
+        
+      } catch (error) {
+        if (error.response?.status === 422) {
+          console.log(`❌ ${sport.key}: Parameters invalid (422)`);
+        } else {
+          console.log(`⚠️ ${sport.key}: ${error.message}`);
         }
       }
     }

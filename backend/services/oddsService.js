@@ -7,30 +7,69 @@ const { mapApiDataToFrontend } = require('../utils/dataMapper');
 const API_BASE_URL = 'https://api.the-odds-api.com/v4';
 const API_KEY = process.env.ODDS_API_KEY;
 
-// Esportes para monitorar: Futebol e Basquete (chaves exatas da API oficial)
-const MONITORED_SPORTS = [
-  // Futebol - usando chaves exatas da lista oficial da API (removido campeonato brasileiro)
+// Lista inicial conservadora - será validada dinamicamente
+const INITIAL_SPORTS = [
+  // Esportes mais comuns que geralmente estão disponíveis
   'soccer_epl',
-  'soccer_spain_la_liga',
+  'soccer_spain_la_liga', 
   'soccer_uefa_champs_league',
-  'soccer_germany_bundesliga',
-  'soccer_italy_serie_a',
-  'soccer_france_ligue_one',
-  'soccer_uefa_europa_league',
-  
-  // Basquete - usando chaves exatas da lista oficial da API
-  'basketball_nba',
-  'basketball_ncaab',
-  'basketball_wnba',
-  'basketball_euroleague'
+  'basketball_nba'
 ];
 
+let validatedSports = [];
 let cronJob = null;
 let currentSportIndex = 0;
 
+async function validateSportsAvailability() {
+  console.log('🔍 Validating available sports...');
+  
+  try {
+    const sportsResponse = await axios.get(`${API_BASE_URL}/sports`, {
+      params: { apiKey: API_KEY }
+    });
+    
+    const availableSports = sportsResponse.data.filter(sport => sport.active);
+    
+    // Filtrar apenas esportes de futebol e basquete que estão realmente disponíveis
+    const footballSports = availableSports.filter(sport => 
+      sport.group === 'Soccer' && sport.active
+    ).slice(0, 5); // Máximo 5 ligas de futebol
+    
+    const basketballSports = availableSports.filter(sport => 
+      sport.group === 'Basketball' && sport.active
+    ).slice(0, 3); // Máximo 3 ligas de basquete
+    
+    validatedSports = [
+      ...footballSports.map(s => s.key),
+      ...basketballSports.map(s => s.key)
+    ];
+    
+    console.log(`✅ Validated ${validatedSports.length} available sports:`);
+    validatedSports.forEach(sport => console.log(`   - ${sport}`));
+    
+    return validatedSports;
+    
+  } catch (error) {
+    console.error('❌ Error validating sports:', error.message);
+    // Fallback para lista inicial em caso de erro
+    validatedSports = INITIAL_SPORTS;
+    return validatedSports;
+  }
+}
+
 async function fetchOddsFromAPI() {
-  const sport = MONITORED_SPORTS[currentSportIndex];
-  currentSportIndex = (currentSportIndex + 1) % MONITORED_SPORTS.length;
+  // Garantir que temos esportes validados
+  if (validatedSports.length === 0) {
+    await validateSportsAvailability();
+  }
+  
+  if (validatedSports.length === 0) {
+    console.log('⚠️ No validated sports available, using mock data');
+    return getMockData();
+  }
+  
+  const sport = validatedSports[currentSportIndex];
+  currentSportIndex = (currentSportIndex + 1) % validatedSports.length;
   
   try {
     console.log(`🔍 Fetching odds for ${sport}...`);
@@ -38,7 +77,7 @@ async function fetchOddsFromAPI() {
     const response = await axios.get(`${API_BASE_URL}/sports/${sport}/odds`, {
       params: {
         apiKey: API_KEY,
-        regions: 'us,uk,eu,au,br', // Incluindo regiões para Betano, VBet, etc
+        regions: 'us,uk,eu,au',
         markets: 'h2h',
         oddsFormat: 'decimal'
       },
@@ -70,7 +109,10 @@ async function fetchOddsFromAPI() {
     console.error(`❌ Error fetching odds for ${sport}:`, error.message);
     
     if (error.response?.status === 422) {
-      console.log(`⚠️ Sport ${sport} may not be available or parameters are invalid`);
+      console.log(`⚠️ Sport ${sport} parameters invalid, removing from list`);
+      // Remover esporte inválido da lista
+      validatedSports = validatedSports.filter(s => s !== sport);
+      currentSportIndex = 0; // Reset index
     } else if (error.response?.status === 429) {
       console.log('⏳ Rate limited, waiting before next request...');
     }
@@ -171,8 +213,11 @@ function getMockData() {
   ];
 }
 
-function startDataUpdater() {
+async function startDataUpdater() {
   const updateIntervalMinutes = Math.floor(getUpdateInterval() / 60000);
+  
+  // Validar esportes disponíveis antes de iniciar
+  await validateSportsAvailability();
   
   // Initial fetch
   fetchOddsFromAPI();
