@@ -64,8 +64,8 @@ async function fetchOddsFromAPI() {
   }
   
   if (validatedSports.length === 0) {
-    console.log('⚠️ No validated sports available, using mock data');
-    return getMockData();
+    console.log('⚠️ No validated sports available, returning empty data');
+    return [];
   }
   
   const sport = validatedSports[currentSportIndex];
@@ -117,9 +117,9 @@ async function fetchOddsFromAPI() {
       console.log('⏳ Rate limited, waiting before next request...');
     }
     
-    // Return cached data if available
+    // Return cached data if available, otherwise empty array
     const cached = getCachedOpportunities();
-    return cached ? cached.data : getMockData();
+    return cached ? cached.data : [];
   }
 }
 
@@ -176,41 +176,6 @@ function findBestOdds(game) {
   }
   
   return null;
-}
-
-function getMockData() {
-  return [
-    {
-      time_home: "Manchester United",
-      time_away: "Arsenal",
-      odds: {
-        home: { odd: 2.8, casa: "Bet365" },
-        draw: { odd: 3.4, casa: "Betfair" },
-        away: { odd: 2.6, casa: "Superbet" }
-      },
-      stakes: {
-        home: "35.71",
-        draw: "29.41",
-        away: "38.46",
-        lucro: "3.57"
-      }
-    },
-    {
-      time_home: "Lakers",
-      time_away: "Warriors",
-      odds: {
-        home: { odd: 2.1, casa: "DraftKings" },
-        draw: { odd: 999, casa: "N/A" },
-        away: { odd: 1.9, casa: "FanDuel" }
-      },
-      stakes: {
-        home: "47.62",
-        draw: "0.00",
-        away: "52.63",
-        lucro: "2.38"
-      }
-    }
-  ];
 }
 
 async function startDataUpdater() {

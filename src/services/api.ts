@@ -10,42 +10,11 @@ export const api = {
       if (!response.ok) {
         throw new Error('Failed to fetch odds');
       }
-      return await response.json();
+      const data = await response.json();
+      return data; // Retorna apenas dados reais da API
     } catch (error) {
       console.error('Error fetching arbitrage opportunities:', error);
-      // Return mock data for demo purposes
-      return [
-        {
-          time_home: "Manchester United",
-          time_away: "Arsenal",
-          odds: {
-            home: { odd: 2.8, casa: "Bet365" },
-            draw: { odd: 3.4, casa: "Betfair" },
-            away: { odd: 2.6, casa: "Superbet" }
-          },
-          stakes: {
-            home: "35.71",
-            draw: "29.41",
-            away: "38.46",
-            lucro: "3.57"
-          }
-        },
-        {
-          time_home: "Liverpool",
-          time_away: "Chelsea",
-          odds: {
-            home: { odd: 2.1, casa: "H2bet" },
-            draw: { odd: 3.8, casa: "Bet365" },
-            away: { odd: 3.2, casa: "Betfair" }
-          },
-          stakes: {
-            home: "45.24",
-            draw: "25.00",
-            away: "29.76",
-            lucro: "2.14"
-          }
-        }
-      ];
+      return []; // Retorna array vazio se houver erro
     }
   },
 
