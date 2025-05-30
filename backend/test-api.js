@@ -16,18 +16,18 @@ async function testOddsAPI() {
       params: { apiKey: API_KEY }
     });
     
-    // Filtrar esportes usando chaves corretas
+    // Filtrar esportes usando chaves exatas da lista oficial
     const targetSports = sportsResponse.data.filter(sport => 
-      (sport.key.includes('soccer_') || 
-       sport.key.includes('basketball_')) && 
+      (sport.key.includes('futebol_') || 
+       sport.key.includes('basquete_')) && 
       sport.active
     );
     
     console.log(`✅ Found ${targetSports.length} active target sports:`);
     
     const categories = {
-      soccer: targetSports.filter(s => s.key.includes('soccer_')),
-      basketball: targetSports.filter(s => s.key.includes('basketball_'))
+      soccer: targetSports.filter(s => s.key.includes('futebol_')),
+      basketball: targetSports.filter(s => s.key.includes('basquete_'))
     };
     
     console.log(`   ⚽ Soccer: ${categories.soccer.length} leagues`);
