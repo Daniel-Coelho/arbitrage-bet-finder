@@ -1,4 +1,3 @@
-
 const axios = require('axios');
 const cron = require('node-cron');
 const { getCachedOpportunities, setCachedOpportunities, getUpdateInterval } = require('../cache/memoryCache');
@@ -10,21 +9,20 @@ const API_KEY = process.env.ODDS_API_KEY;
 
 // Esportes para monitorar: Futebol e Basquete (chaves exatas da API oficial)
 const MONITORED_SPORTS = [
-  // Futebol - usando chaves exatas da lista oficial da API
-  'futebol_brasil_campeonato',
-  'futebol_epl',
-  'futebol_espanha_la_liga',
-  'futebol_uefa_champs_league',
-  'futebol_alemanha_bundesliga',
-  'futebol_itália_série_a',
-  'futebol_francês_ligue_one',
-  'futebol_uefa_europa_league',
+  // Futebol - usando chaves exatas da lista oficial da API (removido campeonato brasileiro)
+  'soccer_epl',
+  'soccer_spain_la_liga',
+  'soccer_uefa_champs_league',
+  'soccer_germany_bundesliga',
+  'soccer_italy_serie_a',
+  'soccer_france_ligue_one',
+  'soccer_uefa_europa_league',
   
   // Basquete - usando chaves exatas da lista oficial da API
-  'basquete_nba',
-  'basquete_ncaab',
-  'basquete_wnba',
-  'basquete_euroliga'
+  'basketball_nba',
+  'basketball_ncaab',
+  'basketball_wnba',
+  'basketball_euroleague'
 ];
 
 let cronJob = null;
