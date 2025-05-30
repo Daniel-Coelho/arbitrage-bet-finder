@@ -47,7 +47,7 @@ async function fetchOddsFromAPI() {
     const response = await axios.get(`${API_BASE_URL}/sports/${sport}/odds`, {
       params: {
         apiKey: API_KEY,
-        regions: 'us,uk,eu',
+        regions: 'us,uk,eu,au,br', // Adicionado 'au' e 'br' para cobrir mais casas
         markets: 'h2h',
         oddsFormat: 'decimal'
       },

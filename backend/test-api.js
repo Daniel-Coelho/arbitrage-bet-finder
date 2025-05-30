@@ -48,7 +48,7 @@ async function testOddsAPI() {
           const oddsResponse = await axios.get(`${API_BASE_URL}/sports/${sport.key}/odds`, {
             params: {
               apiKey: API_KEY,
-              regions: 'us,uk,eu',
+              regions: 'us,uk,eu,au,br', // Incluindo mais regiões para cobrir Betano, VBet, etc
               markets: 'h2h',
               oddsFormat: 'decimal'
             }
@@ -62,6 +62,10 @@ async function testOddsAPI() {
             const game = oddsResponse.data[0];
             console.log(`   - Sample game: ${game.home_team} vs ${game.away_team}`);
             console.log(`   - Bookmakers: ${game.bookmakers.length}`);
+            
+            // Mostrar casas de apostas encontradas para debug
+            const bookmakers = game.bookmakers.map(b => b.title).join(', ');
+            console.log(`   - Available bookmakers: ${bookmakers}`);
           }
         } catch (error) {
           console.log(`⚠️ No data available for ${sport.title}`);
